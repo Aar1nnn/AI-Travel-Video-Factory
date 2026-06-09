@@ -1,0 +1,75 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Output (生成视频和临时文件)
+output/
+!output/.gitkeep
+
+# Whisper models (large files)
+models/
+*.pt
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+*.temp
+~$*
+
+# Large media files (keep index, ignore raw video)
+assets/*.mp4
+assets/*.mov
+assets/*.avi
+assets/*.mkv
+!assets/.gitkeep
+!assets/**/.gitkeep
+
+# Claude Code
+.claude/settings.local.json
+
+# Experiments output
+experiments/*/output/
+experiments/*/downloaded/
+experiments/*/raw_downloads/
+
+# Node (Remotion experiments)
+node_modules/
+
+# Large temp video files
+assets/raw/*.mp4
+assets/processed/*.mp4
+assets/thumbnails/*.jpg
+
+# HuggingFace cache
+*.safetensors

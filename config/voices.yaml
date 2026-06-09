@@ -1,0 +1,46 @@
+# AI Travel Video Factory — Voice Profiles
+#
+# 每个 profile 定义一个完整的 TTS 音色配置。
+# 通过 --voice <profile_name> 选择。
+#
+# Profile 结构:
+#   voice:  Edge TTS 音色 ID (zh-CN-* 系列)
+#   rate:   语速（-50% ~ +100%）
+#   pitch:  音调（-50Hz ~ +50Hz）
+#   volume: 音量（-50% ~ +50%）
+
+profiles:
+  travel_female:
+    name: "旅行女声"
+    voice: "zh-CN-XiaoxiaoNeural"
+    rate: "+10%"
+    pitch: "+0Hz"
+    volume: "+0%"
+
+  travel_male:
+    name: "旅行男声"
+    voice: "zh-CN-YunxiNeural"
+    rate: "+5%"
+    pitch: "-5Hz"
+    volume: "+0%"
+
+  story_female:
+    name: "叙述女声"
+    voice: "zh-CN-XiaoyiNeural"
+    rate: "-5%"
+    pitch: "+0Hz"
+    volume: "+0%"
+
+  story_male:
+    name: "叙述男声"
+    voice: "zh-CN-YunjianNeural"
+    rate: "-5%"
+    pitch: "-5Hz"
+    volume: "+0%"
+
+  energetic_female:
+    name: "活力女声"
+    voice: "zh-CN-XiaoxiaoNeural"
+    rate: "+20%"
+    pitch: "+10Hz"
+    volume: "+5%"

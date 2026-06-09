@@ -1,0 +1,23 @@
+[Script Info]
+Title: Subtitles
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Arial,48,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,4.0,2.0,2,60,60,120,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,00:00:00.000,00:00:02.020,Default,,0,0,0,,從立江出發
+Dialogue: 0,00:00:02.020,00:00:04.040,Default,,0,0,0,,一路向北 鄉隔里拉就在那裡等你
+Dialogue: 0,00:00:04.040,00:00:06.939,Default,,0,0,0,,獨克宗古城裡 賺金桶賺三圈
+Dialogue: 0,00:00:06.939,00:00:09.839,Default,,0,0,0,,許個院 心裡特別踏實
+Dialogue: 0,00:00:09.839,00:00:12.879,Default,,0,0,0,,普達錯的湖面向鏡子
+Dialogue: 0,00:00:12.879,00:00:15.919,Default,,0,0,0,,倒應著森林和雪山 深呼吸 全是氧氣
+Dialogue: 0,00:00:15.919,00:00:19.100,Default,,0,0,0,,晚上去藏民家 吃頓茅牛火鍋
+Dialogue: 0,00:00:19.100,00:00:22.280,Default,,0,0,0,,喝蘇油茶 聽他們唱名歌 太蜘蛛了
+Dialogue: 0,00:00:22.280,00:00:24.840,Default,,0,0,0,,松在零四的金頂
+Dialogue: 0,00:00:24.840,00:00:27.400,Default,,0,0,0,,在西洋下閃閃發光 那一刻時間都慢了

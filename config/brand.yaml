@@ -1,0 +1,9 @@
+# 品牌配置（可选）
+# 如果不需要品牌水印，留空即可
+
+brand:
+  name: ""
+  logo_path: ""
+  website: ""
+  show_in_video: false
+  position: "bottom-right"  # bottom-right / bottom-left / top-right / top-left

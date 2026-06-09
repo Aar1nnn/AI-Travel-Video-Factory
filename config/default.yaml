@@ -1,0 +1,33 @@
+# AI Travel Video Factory — 默认配置
+# 可通过 .env 覆盖敏感字段（如 API Key）
+
+video:
+  width: 1080
+  height: 1920
+  fps: 30
+  codec: libx264
+  preset: medium
+  crf: 23
+
+audio:
+  bgm_volume: 0.15
+  voice_volume: 1.0
+  ducking_reduction: 0.4
+  sample_rate: 44100
+
+tts:
+  provider: edge_tts
+  voice: zh-CN-XiaoxiaoNeural
+  rate: "+10%"
+
+llm:
+  provider: deepseek
+  model: deepseek-chat
+  temperature: 0.7
+  max_tokens: 2000
+  base_url: https://api.deepseek.com
+
+whisper:
+  model: base
+  language: zh
+  word_timestamps: false
