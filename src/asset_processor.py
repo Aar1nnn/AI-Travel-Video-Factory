@@ -26,23 +26,30 @@ from src.config import (
 )
 from src.asset_library import AssetRecord, SceneType
 from src.utils import ensure_dir
-from src.asset_library import AssetRecord, SceneType
-from src.utils import ensure_dir
 
 
-# ── FFmpeg/FFprobe paths ──────────────────────────────
+# ── FFmpeg/FFprobe paths (auto-detect) ──────────────────
 
-_FFMPEG_BIN = str(Path(
-    "C:/Users/aarinsim/AppData/Local/Microsoft/WinGet/Packages/"
-    "Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/"
-    "ffmpeg-8.1.1-full_build/bin/ffmpeg.exe"
-))
+def _find_ffmpeg() -> str:
+    import shutil as _shutil
+    path = _shutil.which("ffmpeg")
+    if path:
+        return path
+    raise RuntimeError("FFmpeg not found. Please install FFmpeg and add it to PATH.")
 
-_FFPROBE_BIN = str(Path(
-    "C:/Users/aarinsim/AppData/Local/Microsoft/WinGet/Packages/"
-    "Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/"
-    "ffmpeg-8.1.1-full_build/bin/ffprobe.exe"
-))
+def _find_ffprobe() -> str:
+    import shutil as _shutil
+    path = _shutil.which("ffprobe")
+    if path:
+        return path
+    ffmpeg_dir = Path(_find_ffmpeg()).parent
+    probe = ffmpeg_dir / ("ffprobe.exe" if Path(_find_ffmpeg()).suffix == ".exe" else "ffprobe")
+    if probe.exists():
+        return str(probe)
+    raise RuntimeError("FFprobe not found. Please install FFmpeg and add it to PATH.")
+
+_FFMPEG_BIN = _find_ffmpeg()
+_FFPROBE_BIN = _find_ffprobe()
 
 VIDEO_EXTS = {".mp4", ".mov", ".avi", ".webm", ".mkv"}
 

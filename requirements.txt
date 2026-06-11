@@ -1,0 +1,31 @@
+# AI Travel Video Factory - Dependencies
+# Install: pip install -r requirements.txt
+# Python >= 3.12
+
+# Core Pipeline
+openai>=2.0
+edge-tts>=7.0
+openai-whisper>=20250625
+scenedetect>=0.7
+opencv-python>=4.0
+open_clip_torch>=3.0
+
+# Config & Data
+pydantic>=2.0
+PyYAML>=6.0
+python-dotenv>=1.0
+
+# Streamlit Demo
+streamlit>=1.50
+
+# Testing
+pytest>=9.0
+
+# Utils
+numpy>=2.0
+torch>=2.0
+Pillow>=12.0
+tqdm>=4.0
+httpx>=0.28
+ffmpeg-python>=0.2
+faster-whisper>=1.0

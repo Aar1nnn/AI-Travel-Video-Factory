@@ -1,3 +1,5 @@
+# AI Travel Video Factory — .gitignore
+
 # Python cache
 __pycache__/
 *.py[cod]
@@ -13,7 +15,7 @@ dist/
 venv/
 env/
 
-# Environment variables
+# Environment variables (contains API keys)
 .env
 .env.*
 
@@ -29,13 +31,9 @@ Thumbs.db
 logs/
 *.log
 
-# Output (生成视频和临时文件)
+# Output (generated videos and temp files)
 output/
 !output/.gitkeep
-
-# Whisper models (large files)
-models/
-*.pt
 
 # Test artifacts
 .pytest_cache/
@@ -47,16 +45,52 @@ htmlcov/
 *.temp
 ~$*
 
-# Large media files (keep index, ignore raw video)
-assets/*.mp4
-assets/*.mov
-assets/*.avi
-assets/*.mkv
-!assets/.gitkeep
-!assets/**/.gitkeep
+# Large media files — keep .gitkeep only
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.mp3
+*.wav
+!**/.gitkeep
+
+# Image thumbnails
+*.jpg
+*.png
+*.webp
+!**/.gitkeep
+
+# Embeddings
+*.npy
+
+# Source assets (copyright-sensitive)
+assets/china/
+assets/raw/*.mp4
+assets/processed/*.mp4
+assets/thumbnails/*.jpg
+
+# Production artifacts
+assets/index_auto_tagged.json
+
+# BGM (copyright-sensitive)
+bgm/*.mp3
+bgm/*.wav
+
+# Fonts (may have license restrictions)
+fonts/*.ttf
+fonts/*.otf
+
+# Whisper models (large binary files)
+models/
+*.pt
+*.bin
+*.safetensors
+
+# HuggingFace cache
+.huggingface/
 
 # Claude Code
-.claude/settings.local.json
+.claude/
 
 # Experiments output
 experiments/*/output/
@@ -66,10 +100,5 @@ experiments/*/raw_downloads/
 # Node (Remotion experiments)
 node_modules/
 
-# Large temp video files
-assets/raw/*.mp4
-assets/processed/*.mp4
-assets/thumbnails/*.jpg
-
-# HuggingFace cache
-*.safetensors
+# Streamlit
+.streamlit/secrets.toml

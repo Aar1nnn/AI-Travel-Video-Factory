@@ -264,6 +264,12 @@ def main():
                     entry["duplicate_asset_count"] = meta.get("duplicate_asset_count", 0)
                     entry["bgm_file"] = meta.get("bgm_file", None)
                     entry["subtitle_burned_in"] = meta.get("subtitle_burned_in", False)
+                    # V4: include quality scores
+                    if "quality_score" in meta:
+                        entry["quality_score"] = meta["quality_score"]
+                        entry["publish_recommendation"] = meta.get("publish_recommendation", "unknown")
+                        entry["risk_flags"] = meta.get("risk_flags", [])
+                        entry["improvement_suggestions"] = meta.get("improvement_suggestions", [])
                 except Exception:
                     pass
                 print(f"  [OK] {result.final_video_path}")

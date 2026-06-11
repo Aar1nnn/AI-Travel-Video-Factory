@@ -644,9 +644,11 @@ class AssetLibraryManager:
         return country, city, category
 
     def _find_ffprobe(self) -> str | None:
-        cand = "C:/Users/aarinsim/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1.1-full_build/bin/ffprobe.exe"
-        if Path(cand).exists(): return cand
-        for p in os.environ.get("PATH", "").split(";"):
+        import shutil as _shutil
+        path = _shutil.which("ffprobe")
+        if path:
+            return path
+        for p in os.environ.get("PATH", "").split(os.pathsep):
             if (Path(p) / "ffprobe.exe").exists(): return str(Path(p) / "ffprobe.exe")
         return None
 

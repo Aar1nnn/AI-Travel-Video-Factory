@@ -29,6 +29,7 @@ from src.voice_generator import VoiceGenerator
 from src.subtitle_generator import SubtitleGenerator
 from src.video_composer import VideoComposer, CompositionResult
 from src.exporter import Exporter, ExportResult
+from src.quality_scorer import QualityScorer
 from src.utils import save_json, ensure_dir
 
 logger = logging.getLogger(__name__)
@@ -170,6 +171,8 @@ class Pipeline:
         match_results = self.asset_mgr.match_for_scenes(script.scenes, top_n=3)
         script_with_assets = self._build_script_with_assets(script_dict, match_results)
         script_with_assets = self._filter_missing_assets(script_with_assets)
+        # V4: Enforce unique asset_id per video
+        script_with_assets, dedup_log = self._dedup_assets(script_with_assets)
         sawa_path = TEMP_DIR / "script_with_assets.json"
         save_json(script_with_assets, sawa_path)
         print(f"  [2/6] [OK] script_with_assets.json")
@@ -220,6 +223,30 @@ class Pipeline:
             "bgm_file": bgm_name,
             "subtitle_burned_in": True,
         }
+        # ── V4: Quality Scoring ──────────────────────────
+        print("\n  [7/7] 质量评分...")
+        try:
+            scorer = QualityScorer()
+            quality_report = scorer.score(metadata, script_dict)
+            # Write quality report alongside metadata
+            date_str = datetime.now().strftime("%Y%m%d")
+            safe_topic = self.exporter._sanitize_filename(topic)
+            quality_path = self.output_dir / f"{safe_topic}_{date_str}_quality.json"
+            quality_path.write_text(
+                quality_report.model_dump_json(indent=2), encoding="utf-8")
+            # Update metadata dict with quality fields BEFORE export (so it goes into .json)
+            metadata["quality_score"] = quality_report.content_score.total_score
+            metadata["publish_recommendation"] = quality_report.content_score.publish_recommendation
+            metadata["risk_flags"] = quality_report.risk_flags
+            metadata["improvement_suggestions"] = quality_report.improvement_suggestions
+            print(f"  [7/7] 评分: {quality_report.content_score.total_score}/100 "
+                  f"({quality_report.content_score.publish_recommendation})")
+        except Exception as e:
+            metadata["quality_scorer_status"] = "failed"
+            metadata["quality_scorer_error"] = str(e)[:200]
+            print(f"  [7/7] Quality Scorer 评分失败: {e}")
+
+        # Now export with quality metadata included
         export_result = self.exporter.export(
             composed_video_path=comp_result.video_path,
             topic=topic,
@@ -355,3 +382,63 @@ class Pipeline:
             "title": script_with_assets["title"],
             "scenes": cleaned_scenes,
         }
+
+    def _dedup_assets(self, script_with_assets: dict) -> tuple[dict, list[dict]]:
+        """
+        V4: Enforce unique asset_id per video.
+
+        If the same asset appears in multiple scenes, replace duplicates
+        with the next available asset from the scene's top-N match list,
+        or fallback if all candidates exhausted.
+
+        Returns:
+            (deduped script_with_assets, dedup_log)
+        """
+        scenes = script_with_assets.get("scenes", [])
+        used_paths: set[str] = set()
+        deduped_scenes = []
+        dedup_log = []
+        total_replacements = 0
+
+        for scene in scenes:
+            assets = scene.get("assets", [])
+            new_assets = []
+            for asset in assets:
+                asset_path = asset["path"]
+                if asset_path in used_paths:
+                    # Try next candidates from match (already filtered above)
+                    # At this stage, we only have what _build and _filter gave us.
+                    # If already a duplicate, use fallback and log it.
+                    replacements = [a for a in assets if a["path"] not in used_paths]
+                    if replacements:
+                        new_assets.append(replacements[0])
+                        used_paths.add(replacements[0]["path"])
+                        dedup_log.append({
+                            "scene_id": scene["id"],
+                            "original_asset": asset_path,
+                            "replacement_asset": replacements[0]["path"],
+                            "reason": "duplicate_in_video",
+                        })
+                        total_replacements += 1
+                    else:
+                        # All assets in this scene are duplicates. Use fallback.
+                        fb = {"path": _FALLBACK_ASSET_PATH, "type": _FALLBACK_ASSET_TYPE}
+                        new_assets.append(fb)
+                        used_paths.add(fb["path"])  # track fallback too
+                        dedup_log.append({
+                            "scene_id": scene["id"],
+                            "original_asset": asset_path,
+                            "replacement_asset": _FALLBACK_ASSET_PATH,
+                            "reason": "all_candidates_duplicate",
+                        })
+                        total_replacements += 1
+                else:
+                    new_assets.append(asset)
+                    used_paths.add(asset_path)
+
+            deduped_scenes.append(dict(scene, assets=new_assets))
+
+        if total_replacements > 0:
+            print(f"  [Pipeline] 素材去重: {total_replacements} 个重复素材已替换")
+
+        return {"title": script_with_assets["title"], "scenes": deduped_scenes}, dedup_log

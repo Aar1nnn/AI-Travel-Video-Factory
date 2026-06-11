@@ -17,14 +17,13 @@ import whisper
 from src.config import WhisperConfig, TEMP_DIR
 from src.utils import ensure_dir
 
-# 确保 FFmpeg 在 PATH 中（Whisper 需要 ffmpeg 做音频解码）
-_FFMPEG_BIN = Path(
-    "C:/Users/aarinsim/AppData/Local/Microsoft/WinGet/Packages/"
-    "Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/"
-    "ffmpeg-8.1.1-full_build/bin"
-)
-if str(_FFMPEG_BIN) not in os.environ.get("PATH", ""):
-    os.environ["PATH"] = str(_FFMPEG_BIN) + ";" + os.environ.get("PATH", "")
+# Ensure FFmpeg is in PATH (Whisper needs ffmpeg for audio decoding)
+import shutil as _shutil
+_ffmpeg_path = _shutil.which("ffmpeg")
+if _ffmpeg_path:
+    _ffmpeg_dir = str(Path(_ffmpeg_path).parent)
+    if _ffmpeg_dir not in os.environ.get("PATH", ""):
+        os.environ["PATH"] = _ffmpeg_dir + os.pathsep + os.environ.get("PATH", "")
 
 
 class SubtitleGenerator:

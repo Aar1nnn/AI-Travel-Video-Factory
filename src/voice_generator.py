@@ -41,13 +41,17 @@ MOOD_RATE_ADJUSTMENTS: dict[str, str] = {
     "结尾号召":   "+5%",   # 结尾号召稍快
 }
 
-# ── FFmpeg Path ────────────────────────────────────────
+# ── FFmpeg Path (auto-detect) ──────────────────────────
 
-_FFMPEG_BIN = str(Path(
-    "C:/Users/aarinsim/AppData/Local/Microsoft/WinGet/Packages/"
-    "Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/"
-    "ffmpeg-8.1.1-full_build/bin/ffmpeg.exe"
-))
+import shutil as _shutil
+_FFMPEG_BIN = _shutil.which("ffmpeg")
+if not _FFMPEG_BIN:
+    raise RuntimeError(
+        "FFmpeg not found. Please install FFmpeg and add it to PATH.\n"
+        "  Windows: winget install Gyan.FFmpeg\n"
+        "  macOS:   brew install ffmpeg\n"
+        "  Linux:   sudo apt install ffmpeg"
+    )
 
 
 # ── Generator ──────────────────────────────────────────

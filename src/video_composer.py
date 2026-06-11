@@ -19,16 +19,39 @@ from src.config import ASSETS_DIR, TEMP_DIR, BGM_DIR, VideoConfig, AudioConfig
 from src.utils import ensure_dir
 
 
-# ── FFmpeg path ───────────────────────────────────────
+# ── FFmpeg path (auto-detect, cross-platform) ──────────
 
-_FFMPEG_BASE = Path(
-    "C:/Users/aarinsim/AppData/Local/Microsoft/WinGet/Packages/"
-    "Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/"
-    "ffmpeg-8.1.1-full_build/bin"
-)
+def _find_ffmpeg() -> str:
+    """Auto-detect ffmpeg from PATH or common locations."""
+    import shutil as _shutil
+    path = _shutil.which("ffmpeg")
+    if path:
+        return path
+    # Fallback: common locations
+    import platform
+    if platform.system() == "Windows":
+        candidates = [Path.home() / "AppData/Local/Microsoft/WinGet/Packages" / "Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe" / "ffmpeg-8.1.1-full_build/bin/ffmpeg.exe"]
+    else:
+        candidates = [Path("/usr/bin/ffmpeg"), Path("/usr/local/bin/ffmpeg"), Path("/opt/homebrew/bin/ffmpeg")]
+    for c in candidates:
+        if c.exists():
+            return str(c)
+    raise RuntimeError("FFmpeg not found. Please install FFmpeg and add it to PATH.")
 
-FFMPEG_BIN = str(_FFMPEG_BASE / "ffmpeg.exe")
-FFPROBE_BIN = str(_FFMPEG_BASE / "ffprobe.exe")
+def _find_ffprobe() -> str:
+    """Auto-detect ffprobe from PATH or alongside ffmpeg."""
+    import shutil as _shutil
+    path = _shutil.which("ffprobe")
+    if path:
+        return path
+    ffmpeg_dir = Path(_find_ffmpeg()).parent
+    probe = ffmpeg_dir / ("ffprobe.exe" if Path(_find_ffmpeg()).suffix == ".exe" else "ffprobe")
+    if probe.exists():
+        return str(probe)
+    raise RuntimeError("FFprobe not found. Please install FFmpeg and add it to PATH.")
+
+FFMPEG_BIN = _find_ffmpeg()
+FFPROBE_BIN = _find_ffprobe()
 
 
 def _check_ffmpeg():
@@ -300,16 +323,52 @@ class VideoComposer:
 
     @staticmethod
     def find_bgm() -> tuple[Path | None, str]:
-        """Find a random BGM file. Returns (path, name_or_message)."""
+        """Find a random BGM file. Skips silent/test/low-volume files. Returns (path, name_or_message)."""
         if not BGM_DIR.exists():
             print("  [WARNING] BGM 目录不存在: bgm/ 缺少背景音乐文件")
             return None, "bgm_dir_missing"
-        bgm_files = [f for f in BGM_DIR.glob("*") if f.suffix.lower() in (".mp3", ".wav", ".m4a", ".ogg")
-                     and f.name != ".gitkeep" and f.stat().st_size > 1000]
-        if not bgm_files:
+
+        # Filter: skip .gitkeep, skip small files, skip test/silent named files
+        all_files = [f for f in BGM_DIR.glob("*") if f.suffix.lower() in (".mp3", ".wav", ".m4a", ".ogg")
+                     and f.name != ".gitkeep" and f.stat().st_size > 10000]  # >10KB
+
+        if not all_files:
             print("  [WARNING] bgm/ 目录中没有有效的音乐文件 (.mp3/.wav)")
             return None, "no_real_bgm"
-        chosen = random.choice(bgm_files)
+
+        # Exclude silent/test BGM
+        blacklist_patterns = ["bgm_01", "test_bgm", "silent", "empty", "null"]
+        real_bgm = [f for f in all_files if not any(p in f.name.lower() for p in blacklist_patterns)]
+
+        if not real_bgm:
+            print("  [WARNING] bgm/ 中所有文件都是测试/静默BGM，已过滤")
+            return None, "all_bgm_are_test_files"
+
+        chosen = random.choice(real_bgm)
+
+        # Optional: quick volume check via ffprobe
+        try:
+            result = subprocess.run(
+                [FFPROBE_BIN, "-v", "error", "-show_entries",
+                 "format=duration", "-of", "json", str(chosen)],
+                capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                import json as _json
+                dur = float(_json.loads(result.stdout)["format"]["duration"])
+                size_kb = chosen.stat().st_size / 1024
+                # Rough estimate: if size/duration < 2KB/s, likely too quiet/silent
+                bitrate_est = size_kb / max(dur, 0.1)
+                if bitrate_est < 2:
+                    print(f"  [WARNING] BGM {chosen.name} appears silent (low bitrate), skipping...")
+                    # Try another
+                    others = [f for f in real_bgm if f.name != chosen.name]
+                    if others:
+                        chosen = random.choice(others)
+                    else:
+                        return None, "all_bgm_silent"
+        except Exception:
+            pass  # Probe failed, use the file anyway
+
         print(f"  [BGM] 使用: {chosen.name}")
         return chosen, chosen.name
 
