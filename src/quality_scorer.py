@@ -108,6 +108,13 @@ class QualityScorer:
         commercial = self._score_commercial(metadata, script)
         total = hook + script_s + asset + subtitle + bgm + pacing + commercial
 
+        # V5: Hard dedup rule — duplicate_asset_count > 0 → max "needs_review"
+        recommendation = self._recommend(total)
+        if metadata.get("duplicate_asset_count", 0) > 0:
+            recommendation = max(recommendation, "needs_review")
+            if recommendation == "recommended":
+                recommendation = "needs_review"
+
         return ContentScore(
             hook_score=hook,
             script_score=script_s,
@@ -117,7 +124,7 @@ class QualityScorer:
             pacing_score=pacing,
             commercial_score=commercial,
             total_score=total,
-            publish_recommendation=self._recommend(total),
+            publish_recommendation=recommendation,
         )
 
     # ── Individual Scorers ───────────────────────────
@@ -288,6 +295,8 @@ class QualityScorer:
 
         if content.asset_match_score < 10:
             risks.append("asset_match_too_low")
+        if metadata.get("duplicate_asset_count", 0) > 0:
+            risks.append("duplicate_assets_present")
         if metadata.get("duplicate_asset_count", 0) > 3:
             risks.append("duplicate_assets_high")
         if metadata.get("unique_asset_count", 0) < 5:
@@ -310,7 +319,7 @@ class QualityScorer:
     def _generate_suggestions(self, metadata: dict, content: ContentScore, risks: list[str]) -> list[str]:
         suggestions = []
 
-        if "asset_match_too_low" in risks or "duplicate_assets_high" in risks:
+        if "asset_match_too_low" in risks or "duplicate_assets_high" in risks or "duplicate_assets_present" in risks:
             suggestions.append(
                 f"素材去重不足：当前 {metadata.get('duplicate_asset_count', 0)} 个重复素材。"
                 "建议增加素材多样性或降低 top_n 参数。"
@@ -345,3 +354,6 @@ class QualityScorer:
             return "needs_review"
         else:
             return "not_recommended"
+
+    # Priority: "not_recommended" > "needs_review" > "recommended"
+    # so max() picks the worst recommendation.
