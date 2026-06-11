@@ -96,10 +96,10 @@ streamlit run app.py
 
 ## 当前限制
 
-- 素材库仅含云南4K航拍，缺美食/人文/夜景
-- 字幕为繁体中文 (Whisper base)
-- Quality Scorer 为启发式规则
-- 纯 CLI，无 Web UI
+- 素材库仅含云南4K航拍，缺美食/人文/夜景等素材类型
+- 当前字幕基于 Whisper base，中文转写偶尔出现繁体字和时间轴偏移；后续计划接入 WhisperX 进行强制对齐和简体化处理
+- Quality Scorer 为启发式规则，后续计划引入 LLM 自动化评分
+- 当前提供 Streamlit 本地 Demo UI，暂未提供完整 SaaS Web 前端
 
 ## 项目结构
 
