@@ -262,6 +262,10 @@ def main():
                     meta = _json.loads(result.metadata_path.read_text(encoding="utf-8"))
                     entry["used_assets_count"] = meta.get("unique_asset_count", 0)
                     entry["duplicate_asset_count"] = meta.get("duplicate_asset_count", 0)
+                    entry["duplicate_source_video_count"] = meta.get("duplicate_source_video_count", 0)
+                    entry["unique_source_video_count"] = meta.get("unique_source_video_count", 0)
+                    entry["scene_type_diversity"] = meta.get("scene_type_diversity", 0)
+                    entry["fallback_count"] = meta.get("fallback_count", 0) if "fallback_count" in meta else None
                     entry["bgm_file"] = meta.get("bgm_file", None)
                     entry["subtitle_burned_in"] = meta.get("subtitle_burned_in", False)
                     # V4: include quality scores

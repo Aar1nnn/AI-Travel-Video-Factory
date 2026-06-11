@@ -197,13 +197,27 @@ class Pipeline:
 
         # Step 6: Exporter
         print("\n  [6/6] 导出...")
-        # Gather dedup info
+        # Gather dedup and diversity info
         all_asset_ids = []
+        all_source_ids = []
+        all_scene_types = set()
+        fallback_count = 0
         for s in script_with_assets["scenes"]:
             for a in s.get("assets", []):
-                all_asset_ids.append(Path(a["path"]).stem)
+                aid = a.get("id", "unknown")
+                svid = a.get("source_video_id", "unknown")
+                st = a.get("scene_type", "general")
+                all_asset_ids.append(aid)
+                if svid != "fallback":
+                    all_source_ids.append(svid)
+                if a.get("was_duplicate_asset") or a.get("duplicate_reason", ""):
+                    fallback_count += 1
+                all_scene_types.add(st)
+
         unique_ids = set(all_asset_ids)
+        unique_source_ids = set(all_source_ids)
         duplicate_count = len(all_asset_ids) - len(unique_ids)
+        dup_source_count = len(all_source_ids) - len(unique_source_ids)
 
         metadata = {
             "topic": topic,
@@ -220,6 +234,10 @@ class Pipeline:
             )),
             "unique_asset_count": len(unique_ids),
             "duplicate_asset_count": duplicate_count,
+            "unique_source_video_count": len(unique_source_ids),
+            "duplicate_source_video_count": dup_source_count,
+            "scene_type_diversity": len(all_scene_types),
+            "fallback_count": fallback_count,
             "bgm_file": bgm_name,
             "subtitle_burned_in": True,
         }
@@ -332,7 +350,15 @@ class Pipeline:
                 ]
 
             assets = [
-                {"path": ma.path, "type": ma.type}
+                {"path": ma.path, "type": ma.type,
+                 "id": getattr(ma, "id", "unknown"),
+                 "source_video_id": self._extract_source_video_id(ma),
+                 "scene_type": getattr(ma, "scene_type", "general"),
+                 "match_score": getattr(ma, "final_score", 0.0) or getattr(ma, "match_score", 0.0),
+                 "was_duplicate_asset": False,
+                 "was_duplicate_source": False,
+                 "duplicate_reason": "",
+                 }
                 for ma in matched
             ]
 
@@ -366,7 +392,10 @@ class Pipeline:
 
             if not valid_assets:
                 valid_assets = [
-                    {"path": _FALLBACK_ASSET_PATH, "type": _FALLBACK_ASSET_TYPE}
+                    {"path": _FALLBACK_ASSET_PATH, "type": _FALLBACK_ASSET_TYPE,
+                     "id": "fallback", "source_video_id": "fallback",
+                     "scene_type": "general", "match_score": 0.0,
+                     "was_duplicate_asset": False, "was_duplicate_source": False, "duplicate_reason": ""}
                 ]
 
             cleaned_scenes.append({
@@ -385,60 +414,130 @@ class Pipeline:
 
     def _dedup_assets(self, script_with_assets: dict) -> tuple[dict, list[dict]]:
         """
-        V4: Enforce unique asset_id per video.
+        V5: Enforce unique asset_id + source_video_id per video.
 
-        If the same asset appears in multiple scenes, replace duplicates
-        with the next available asset from the scene's top-N match list,
-        or fallback if all candidates exhausted.
-
-        Returns:
-            (deduped script_with_assets, dedup_log)
+        Rules:
+        - Same asset_id: NEVER allowed in same video. Use top2/top3/fallback.
+        - Same source_video_id: max 1 (ideal) or 2 (if insufficient). Never consecutive.
+        - Consecutive scene_type: discouraged (warn but don't hard-fail).
         """
         scenes = script_with_assets.get("scenes", [])
-        used_paths: set[str] = set()
+        used_asset_ids: set[str] = set()
+        used_source_ids: list[str] = []  # ordered list for consecutive check
+        last_scene_type: str = ""
         deduped_scenes = []
         dedup_log = []
         total_replacements = 0
+        source_cooldown = True  # enforce source_video_id not consecutive
 
         for scene in scenes:
             assets = scene.get("assets", [])
+            this_scene_type = scene.get("scene_type", "general")
             new_assets = []
+
             for asset in assets:
-                asset_path = asset["path"]
-                if asset_path in used_paths:
-                    # Try next candidates from match (already filtered above)
-                    # At this stage, we only have what _build and _filter gave us.
-                    # If already a duplicate, use fallback and log it.
-                    replacements = [a for a in assets if a["path"] not in used_paths]
-                    if replacements:
-                        new_assets.append(replacements[0])
-                        used_paths.add(replacements[0]["path"])
-                        dedup_log.append({
-                            "scene_id": scene["id"],
-                            "original_asset": asset_path,
-                            "replacement_asset": replacements[0]["path"],
-                            "reason": "duplicate_in_video",
-                        })
+                asset_id = asset.get("id", "unknown")
+                source_vid = asset.get("source_video_id", "unknown")
+                asset_path = asset.get("path", "")
+
+                # Rule 1: asset_id must be unique
+                if asset_id in used_asset_ids:
+                    # Try next candidate in same scene's asset list
+                    replacements = [a for a in assets if a.get("id") not in used_asset_ids]
+                    if not replacements:
+                        # All candidates exhausted → fallback
+                        fb = {"path": _FALLBACK_ASSET_PATH, "type": _FALLBACK_ASSET_TYPE,
+                              "id": "fallback", "source_video_id": "fallback",
+                              "scene_type": "general", "match_score": 0.0,
+                              "was_duplicate_asset": True, "was_duplicate_source": False,
+                              "duplicate_reason": "all_candidates_duplicate"}
+                        new_assets.append(fb)
+                        dedup_log.append({"scene_id": scene["id"], "asset_id": asset_id,
+                                         "source_video_id": source_vid, "reason": "all_candidates_duplicate"})
                         total_replacements += 1
                     else:
-                        # All assets in this scene are duplicates. Use fallback.
-                        fb = {"path": _FALLBACK_ASSET_PATH, "type": _FALLBACK_ASSET_TYPE}
-                        new_assets.append(fb)
-                        used_paths.add(fb["path"])  # track fallback too
-                        dedup_log.append({
-                            "scene_id": scene["id"],
-                            "original_asset": asset_path,
-                            "replacement_asset": _FALLBACK_ASSET_PATH,
-                            "reason": "all_candidates_duplicate",
-                        })
+                        # Pick best available replacement
+                        replacement = replacements[0]
+                        # Check source_video_id constraint
+                        if source_cooldown and source_vid in used_source_ids:
+                            # Prefer replacement with different source
+                            alt_replacements = [a for a in replacements if a.get("source_video_id") not in used_source_ids]
+                            if alt_replacements:
+                                replacement = alt_replacements[0]
+                        replacement["was_duplicate_asset"] = True
+                        replacement["duplicate_reason"] = "asset_id_already_used"
+                        new_assets.append(replacement)
+                        used_asset_ids.add(replacement.get("id", ""))
+                        used_source_ids.append(replacement.get("source_video_id", ""))
+                        dedup_log.append({"scene_id": scene["id"], "asset_id": asset_id,
+                                         "source_video_id": source_vid,
+                                         "replacement_id": replacement.get("id"),
+                                         "reason": "asset_id_already_used"})
                         total_replacements += 1
-                else:
-                    new_assets.append(asset)
-                    used_paths.add(asset_path)
+                    continue
 
+                # Rule 2: source_video_id diversity
+                source_count = used_source_ids.count(source_vid) if source_vid != "fallback" else 0
+                if source_cooldown and used_source_ids and used_source_ids[-1] == source_vid:
+                    # Same source as previous scene → try to swap
+                    replacements = [a for a in assets if a.get("id") != asset_id and a.get("source_video_id") != source_vid and a.get("id") not in used_asset_ids]
+                    if replacements:
+                        replacement = replacements[0]
+                        replacement["was_duplicate_source"] = True
+                        replacement["duplicate_reason"] = "consecutive_source_video_id"
+                        new_assets.append(replacement)
+                        used_asset_ids.add(replacement.get("id", ""))
+                        used_source_ids.append(replacement.get("source_video_id", ""))
+                        dedup_log.append({"scene_id": scene["id"], "asset_id": asset_id,
+                                         "source_video_id": source_vid,
+                                         "replacement_id": replacement.get("id"),
+                                         "reason": "consecutive_source_video_id"})
+                        total_replacements += 1
+                        continue
+                    # else: can't avoid, allow it but log
+                    dedup_log.append({"scene_id": scene["id"], "asset_id": asset_id,
+                                     "source_video_id": source_vid, "reason": "consecutive_source_unavoidable"})
+
+                # Rule 3: scene_type consecutive check (soft)
+                if this_scene_type == last_scene_type and this_scene_type != "general":
+                    # Try to pick a different-scene_type asset
+                    replacements = [a for a in assets if a.get("scene_type") != this_scene_type and a.get("id") not in used_asset_ids]
+                    if replacements:
+                        replacement = replacements[0]
+                        replacement["duplicate_reason"] = "consecutive_scene_type"
+                        new_assets.append(replacement)
+                        used_asset_ids.add(replacement.get("id", ""))
+                        used_source_ids.append(replacement.get("source_video_id", ""))
+                        dedup_log.append({"scene_id": scene["id"], "asset_id": asset_id,
+                                         "reason": "consecutive_scene_type",
+                                         "replacement_id": replacement.get("id")})
+                        total_replacements += 1
+                        continue
+
+                # Asset is clean
+                new_assets.append(asset)
+                used_asset_ids.add(asset_id)
+                used_source_ids.append(source_vid)
+
+            last_scene_type = this_scene_type
             deduped_scenes.append(dict(scene, assets=new_assets))
 
         if total_replacements > 0:
-            print(f"  [Pipeline] 素材去重: {total_replacements} 个重复素材已替换")
+            print(f"  [Pipeline] 素材去重: {total_replacements} 个冲突已解决")
 
         return {"title": script_with_assets["title"], "scenes": deduped_scenes}, dedup_log
+
+    @staticmethod
+    def _extract_source_video_id(ma) -> str:
+        """Extract source_video_id from asset record or path."""
+        sv = getattr(ma, "source_video", "") or getattr(ma, "source_video_id", "")
+        if sv:
+            return str(Path(sv).stem)
+        path = getattr(ma, "path", "")
+        # Infer from path: "processed/yunnan_001_clip_03.mp4" → "yunnan_001"
+        stem = Path(path).stem
+        # Clip off trailing _clip_NN
+        parts = stem.rsplit("_", 2)
+        if len(parts) >= 3 and parts[-2] == "clip":
+            return "_".join(parts[:-2])
+        return stem
