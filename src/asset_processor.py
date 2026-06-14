@@ -16,6 +16,7 @@ V1保留:
 
 import json
 import os
+import re
 import subprocess
 from io import BytesIO
 from pathlib import Path
@@ -119,14 +120,33 @@ class AssetProcessor:
         """
         处理单个视频文件。
 
+        如果 raw_path 不在 ASSETS_DIR 下，自动复制到 assets/raw/uploads/
+        后继续处理。
+
         Args:
-            raw_path: raw/ 目录下的视频路径
+            raw_path: 视频路径（可以在 ASSETS_DIR 外部）
 
         Returns:
             生成的 AssetRecord 列表
         """
+        import shutil as _shutil
+
         if not raw_path.exists():
             raise FileNotFoundError(f"文件不存在: {raw_path}")
+
+        # If path is outside ASSETS_DIR, copy it in
+        try:
+            raw_path.relative_to(ASSETS_DIR)
+        except ValueError:
+            uploads_dir = ASSETS_RAW_DIR / "uploads"
+            uploads_dir.mkdir(parents=True, exist_ok=True)
+            from datetime import datetime
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            safe_name = re.sub(r"[^\w一-鿿\-_\.]", "_", raw_path.name)
+            dest = uploads_dir / f"upload_{ts}_{safe_name}"
+            _shutil.copy2(raw_path, dest)
+            print(f"  [AssetProcessor] 外部文件已复制到: {dest}")
+            raw_path = dest
 
         rel = raw_path.relative_to(ASSETS_DIR)
 

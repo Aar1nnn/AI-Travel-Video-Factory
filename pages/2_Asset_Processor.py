@@ -46,12 +46,21 @@ st.divider()
 # ── Process ─────────────────────────────────────────
 
 if uploaded and st.button("🔪 开始切片", type="primary"):
-    # Save uploaded file to temp
-    tmp_dir = Path(tempfile.mkdtemp())
-    tmp_video = tmp_dir / uploaded.name
+    # Save to project-local uploads directory
+    from datetime import datetime
+    uploads_dir = Path("assets/raw/uploads")
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Sanitize filename: keep Chinese chars, remove special chars
+    original_name = uploaded.name
+    safe_stem = "".join(c for c in Path(original_name).stem if c.isalnum() or '一' <= c <= '鿿' or c in "_-")
+    if not safe_stem:
+        safe_stem = "video"
+    dest_name = f"upload_{ts}_{safe_stem}{Path(original_name).suffix}"
+    tmp_video = uploads_dir / dest_name
     tmp_video.write_bytes(uploaded.read())
 
-    st.info(f"文件已上传：{uploaded.name}（{tmp_video.stat().st_size // (1024*1024):.1f} MB）")
+    st.info(f"文件已保存到素材目录：assets/raw/uploads/{dest_name}（{tmp_video.stat().st_size // (1024*1024):.1f} MB）")
 
     progress = st.progress(0, text="正在检测镜头...")
 
@@ -59,10 +68,10 @@ if uploaded and st.button("🔪 开始切片", type="primary"):
         from src.asset_processor import AssetProcessor
 
         proc = AssetProcessor(
-            raw_dir=tmp_dir,
-            processed_dir=tmp_dir / "processed",
-            thumbnails_dir=tmp_dir / "thumbnails",
-            index_path=tmp_dir / "index.json",
+            raw_dir=uploads_dir,
+            processed_dir=Path("assets/processed"),
+            thumbnails_dir=Path("assets/thumbnails"),
+            index_path=Path("assets/index.json"),
             min_scene_duration=min_clip_duration,
         )
 
@@ -104,7 +113,7 @@ if uploaded and st.button("🔪 开始切片", type="primary"):
                     break
                 r = records[idx]
                 with cols[j]:
-                    thumb = tmp_dir / "thumbnails" / f"{r.id}.jpg" if auto_thumbnail else None
+                    thumb = Path("assets/thumbnails") / f"{r.id}.jpg" if auto_thumbnail else None
                     if thumb and thumb.exists():
                         st.image(str(thumb), use_container_width=True)
                     else:
@@ -131,9 +140,17 @@ if uploaded and st.button("🔪 开始切片", type="primary"):
 
     except Exception as e:
         progress.progress(100, text="失败")
-        st.error(f"处理失败：{e}")
-        if hasattr(st, 'exception'):
-            st.exception(e)
+        error_msg = str(e)
+        # Friendly Chinese error message
+        if "relative_to" in error_msg or "subpath" in error_msg:
+            st.error("处理失败：上传文件路径异常，已尝试保存到素材目录后重新处理。")
+        else:
+            st.error(f"处理失败：{error_msg[:200]}")
+        with st.expander("🔍 查看详细错误信息"):
+            if hasattr(st, 'exception'):
+                st.exception(e)
+            else:
+                st.code(error_msg)
 
 elif uploaded:
     st.info("👆 点击「开始切片」开始分析视频")
