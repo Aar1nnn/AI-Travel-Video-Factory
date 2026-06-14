@@ -123,10 +123,10 @@ def _load_env_overrides() -> dict:
     from dotenv import find_dotenv
     dotenv_path = find_dotenv(usecwd=True)
     if dotenv_path:
-        load_dotenv(dotenv_path, override=False)
+        load_dotenv(dotenv_path, override=True)
     # Fallback: also try explicit path
     env_path = PROJECT_ROOT / ".env"
-    if env_path.exists() and not os.getenv("DEEPSEEK_API_KEY"):
+    if env_path.exists():
         load_dotenv(env_path, override=True)
     return {
         "api_key": os.getenv("DEEPSEEK_API_KEY") or os.getenv("OPENAI_API_KEY") or "",
