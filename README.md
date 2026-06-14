@@ -13,17 +13,24 @@ python main.py "云南7天6晚情侣游" --voice travel_female
 # 批量生成质量验证
 python main.py --batch-demo 20
 
-# Streamlit Demo UI
+# Streamlit Dashboard (推荐)
 streamlit run app.py
+# 或双击: run_dashboard.bat
 ```
 
-## Streamlit Demo
+## Streamlit Dashboard
 
 ```bash
 streamlit run app.py
 ```
 
-功能: 输入主题 → 选择音色/风格 → 生成视频 → 展示质量评分 → 下载
+Dashboard 包含三个页面：
+
+| 页面 | 功能 |
+|------|------|
+| 🎬 视频生成工作台 | 输入主题 → 生成视频 → KPI 仪表板 → 下载 |
+| ✂️ 长视频切片工作台 | 上传长视频 → 镜头检测 → 切片 → 缩略图 |
+| 🗂️ 素材库浏览器 | 浏览/筛选/检查素材库，标签云，风险标记 |
 
 ## 核心功能
 
