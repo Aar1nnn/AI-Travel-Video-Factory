@@ -115,10 +115,19 @@ def _load_voice_profiles() -> dict[str, VoiceProfile]:
 
 
 def _load_env_overrides() -> dict:
-    """从 .env 读取敏感配置（API Key 等）。"""
+    """从 .env 读取敏感配置（API Key 等）。
+
+    使用 find_dotenv 自动定位项目根目录的 .env，
+    避免 Streamlit 在不同 CWD 下运行时找不到文件。
+    """
+    from dotenv import find_dotenv
+    dotenv_path = find_dotenv(usecwd=True)
+    if dotenv_path:
+        load_dotenv(dotenv_path, override=False)
+    # Fallback: also try explicit path
     env_path = PROJECT_ROOT / ".env"
-    if env_path.exists():
-        load_dotenv(env_path)
+    if env_path.exists() and not os.getenv("DEEPSEEK_API_KEY"):
+        load_dotenv(env_path, override=True)
     return {
         "api_key": os.getenv("DEEPSEEK_API_KEY") or os.getenv("OPENAI_API_KEY") or "",
     }
