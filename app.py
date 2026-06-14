@@ -23,7 +23,7 @@ import streamlit as st
 # ── Page Config ─────────────────────────────────────
 
 st.set_page_config(
-    page_title="AI Travel Video Factory",
+    page_title="AI 旅游视频工厂",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -33,8 +33,8 @@ st.set_page_config(
 
 st.sidebar.markdown("""
 <div style="padding: 12px 0; text-align: center;">
-    <h1 style="font-size: 1.6rem; margin: 0;">🎬 AI Travel Video Factory</h1>
-    <p style="color: #888; font-size: 0.8rem; margin: 4px 0;">Dashboard v3</p>
+    <h1 style="font-size: 1.6rem; margin: 0;">🎬 AI 旅游视频工厂</h1>
+    <p style="color: #888; font-size: 0.8rem; margin: 4px 0;">作品集展示面板</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -59,9 +59,9 @@ nav.run()
 # ── Sidebar Footer ──────────────────────────────────
 
 st.sidebar.divider()
-st.sidebar.caption("AI Travel Video Factory v3")
-st.sidebar.caption("Streamlit Dashboard Edition")
-st.sidebar.caption("[CLI: python main.py --help]")
+st.sidebar.caption("AI 旅游视频工厂 v3")
+st.sidebar.caption("Streamlit Dashboard 版")
+st.sidebar.caption("[命令行: python main.py --help]")
 
 # Quick status
 try:
@@ -69,7 +69,7 @@ try:
     import json
     idx = json.loads(ASSETS_INDEX.read_text(encoding="utf-8"))
     bgm_count = len([f for f in BGM_DIR.glob("*") if f.suffix.lower() in (".mp3", ".wav") and f.stat().st_size > 10000])
-    st.sidebar.metric("素材库", f"{len(idx)} assets")
-    st.sidebar.metric("BGM", f"{bgm_count} tracks")
+    st.sidebar.metric("素材库", f"{len(idx)} 个素材")
+    st.sidebar.metric("背景音乐", f"{bgm_count} 首")
 except Exception:
     pass

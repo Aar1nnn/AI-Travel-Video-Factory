@@ -34,6 +34,7 @@ logs/
 # Output (generated videos and temp files)
 output/
 !output/.gitkeep
+!output/voice_preview/.gitkeep
 
 # Test artifacts
 .pytest_cache/
