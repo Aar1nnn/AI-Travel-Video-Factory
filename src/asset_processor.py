@@ -120,35 +120,27 @@ class AssetProcessor:
         """
         处理单个视频文件。
 
-        如果 raw_path 不在 ASSETS_DIR 下，自动复制到 assets/raw/uploads/
-        后继续处理。
+        自动处理相对路径/绝对路径/外部路径。
 
         Args:
-            raw_path: 视频路径（可以在 ASSETS_DIR 外部）
+            raw_path: 视频路径（相对或绝对，可在 ASSETS_DIR 外部）
 
         Returns:
             生成的 AssetRecord 列表
         """
         import shutil as _shutil
 
+        # ── Path normalization ──────────────────────────
+        raw_path = self._normalize_input_path(raw_path)
+
         if not raw_path.exists():
             raise FileNotFoundError(f"文件不存在: {raw_path}")
 
-        # If path is outside ASSETS_DIR, copy it in
-        try:
-            raw_path.relative_to(ASSETS_DIR)
-        except ValueError:
-            uploads_dir = ASSETS_RAW_DIR / "uploads"
-            uploads_dir.mkdir(parents=True, exist_ok=True)
-            from datetime import datetime
-            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-            safe_name = re.sub(r"[^\w一-鿿\-_\.]", "_", raw_path.name)
-            dest = uploads_dir / f"upload_{ts}_{safe_name}"
-            _shutil.copy2(raw_path, dest)
-            print(f"  [AssetProcessor] 外部文件已复制到: {dest}")
-            raw_path = dest
+        # At this point raw_path is absolute and inside ASSETS_DIR
+        assets_root = ASSETS_DIR.resolve()
+        rel = raw_path.relative_to(assets_root)
 
-        rel = raw_path.relative_to(ASSETS_DIR)
+        # Step 1: Detect scenes
 
         # Step 1: Detect scenes
         scenes = self._detect_scenes(raw_path)
@@ -416,6 +408,54 @@ class AssetProcessor:
             if entry.suffix.lower() in VIDEO_EXTS:
                 videos.append(entry)
         return videos
+
+    # ── Path Normalization ────────────────────────────
+
+    def _normalize_input_path(self, raw_path: Path) -> Path:
+        """
+        Normalize any input path to an absolute path inside ASSETS_DIR.
+
+        Handles:
+        - Absolute paths inside ASSETS_DIR → no copy needed
+        - Relative paths → resolve against PROJECT_ROOT
+        - Paths outside ASSETS_DIR → copy into assets/raw/uploads/
+        """
+        import shutil as _shutil
+
+        raw_path = Path(raw_path)
+        assets_root = ASSETS_DIR.resolve()
+
+        # Convert to absolute
+        if not raw_path.is_absolute():
+            raw_path = (ASSETS_DIR.parent / raw_path).resolve()
+        else:
+            raw_path = raw_path.resolve()
+
+        # Check if inside assets_root
+        try:
+            raw_path.relative_to(assets_root)
+            return raw_path
+        except ValueError:
+            pass
+
+        # Outside assets_root → copy into uploads
+        uploads_dir = ASSETS_RAW_DIR / "uploads"
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+        from datetime import datetime
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_name = re.sub(r"[^\w一-鿿\-_\.]", "_", raw_path.name)
+        dest = uploads_dir / f"upload_{ts}_{safe_name}"
+        dest = dest.resolve()
+        _shutil.copy2(raw_path, dest)
+        print(f"  [AssetProcessor] 外部文件已复制到: {dest}")
+        # Verify it's now inside assets_root
+        try:
+            dest.relative_to(assets_root)
+        except ValueError:
+            raise RuntimeError(
+                f"无法将文件复制到素材目录内: {dest} 不在 {assets_root} 下"
+            )
+        return dest
 
     # ── V2: Quality Scoring ─────────────────────────────
 

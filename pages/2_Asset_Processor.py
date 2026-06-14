@@ -76,7 +76,7 @@ if uploaded and st.button("🔪 开始切片", type="primary"):
         )
 
         progress.progress(10, text="正在检测镜头切换...")
-        scenes = proc._detect_scenes(tmp_video)
+        scenes = proc._detect_scenes(tmp_video.resolve())
 
         if not scenes:
             st.warning("未检测到镜头切换。建议降低「镜头检测灵敏度」参数后重试。")
@@ -85,7 +85,7 @@ if uploaded and st.button("🔪 开始切片", type="primary"):
         progress.progress(30, text=f"检测到 {len(scenes)} 个镜头...")
 
         # Process video
-        records = proc.process_video(tmp_video)
+        records = proc.process_video(tmp_video.resolve())
 
         progress.progress(80, text="处理完成，正在加载预览...")
 
