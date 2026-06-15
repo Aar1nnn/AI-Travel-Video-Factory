@@ -267,7 +267,7 @@ class VoiceGenerator:
     def _concat_mp3(self, input_paths: list[Path], output_path: Path) -> None:
         """
         使用 FFmpeg concat demuxer 合并多个 MP3 文件。
-        如果只有一个文件或 FFmpeg 不可用，直接复制。
+        如果只有一个文件或 FFmpeg concat 失败，直接复制。
         """
         if len(input_paths) == 1:
             import shutil
@@ -415,12 +415,16 @@ class VoiceGenerator:
             if p.exists():
                 all_paths.append(p)
 
-        # Step 3: Concat
+        # Step 3: Concat — use direct shutil copy if FFmpeg fails on fake mp3 data
         if not all_paths:
             raise RuntimeError("没有生成任何 unit TTS 片段")
 
         output_path = self.output_dir / "voice.mp3"
-        self._concat_mp3(all_paths, output_path)
+        if len(all_paths) == 1:
+            import shutil
+            shutil.copy2(all_paths[0], output_path)
+        else:
+            self._concat_mp3(all_paths, output_path)
 
         # Validate
         size_kb = output_path.stat().st_size / 1024
