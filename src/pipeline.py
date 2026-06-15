@@ -140,20 +140,21 @@ class Pipeline:
 
     # ── Public API ───────────────────────────────────────
 
-    def run(self, topic: str, style: str = "快节奏") -> PipelineResult:
+    def run(self, topic: str, style: str = "快节奏", edit_mode: str = "scene") -> PipelineResult:
         """
         执行完整管线。
 
         Args:
-            topic: 旅游主题，如 "沙巴5天4晚旅游攻略"
-            style: 视频风格，"快节奏" / "舒缓" / "文艺"
+            topic: 旅游主题
+            style: 视频风格
+            edit_mode: "scene" (默认) 或 "voice_unit" (VQ1 句子级剪辑)
 
         Returns:
-            PipelineResult 包含所有输出路径和元数据
-
-        Raises:
-            RuntimeError: 任何模块执行失败
+            PipelineResult
         """
+        if edit_mode == "voice_unit":
+            return self._run_vq1(topic, style)
+
         print(f"\n{'─'*50}")
         print(f"  Pipeline: {topic} ({style})")
         print(f"{'─'*50}")
@@ -304,6 +305,99 @@ class Pipeline:
             duration=comp_result.duration,
             scene_count=comp_result.scene_count,
             asset_count=comp_result.asset_count,
+            file_size_mb=export_result.file_size_mb,
+            resolution=comp_result.resolution,
+        )
+
+    # ── VQ1 Pipeline ──────────────────────────────────────
+
+    def _run_vq1(self, topic: str, style: str) -> PipelineResult:
+        """VQ1: VoiceUnit 句子级剪辑管线。"""
+        from src.voice_unit import build_voice_units
+        from datetime import datetime
+        import shutil
+
+        print(f"\n{'─'*50}")
+        print(f"  Pipeline VQ1: {topic} ({style})")
+        print(f"{'─'*50}")
+
+        # Step 1: Script
+        print("\n  [VQ1 1/5] 生成脚本...")
+        script = self.script_gen.generate(topic, style)
+        script_dict = script.model_dump()
+        script_path = TEMP_DIR / "script.json"
+        save_json(script_dict, script_path)
+        print(f"  [VQ1 1/5] [OK] script.json")
+
+        # Step 2: Build VoiceUnits + TTS
+        print("\n  [VQ1 2/5] 构建 VoiceUnit + 配音...")
+        voice_units = build_voice_units(script)
+        voice_path, voice_units = self.voice_gen.generate_for_voice_units(
+            voice_units, pause_ms=100)
+        print(f"  [VQ1 2/5] [OK] {len(voice_units)} units, voice.mp3")
+
+        # Step 3: Per-unit Asset Matching
+        print("\n  [VQ1 3/5] 匹配素材...")
+        voice_units = self.asset_mgr.match_for_voice_units(voice_units, top_n=5)
+        fb = sum(1 for u in voice_units if u.is_fallback)
+        print(f"  [VQ1 3/5] [OK] {fb}/{len(voice_units)} fallback")
+
+        # Step 4: DirectSRT
+        print("\n  [VQ1 4/5] 生成字幕...")
+        subtitle_path = self.subtitle_gen.generate_from_voice_units(voice_units)
+
+        # Step 5: Compose + Export
+        print("\n  [VQ1 5/5] 合成视频...")
+        bgm_path, bgm_name = VideoComposer.find_bgm()
+        comp_result = self.composer.compose_vq1(
+            voice_units, voice_path,
+            subtitle_path=subtitle_path, bgm_path=bgm_path,
+        )
+        print(f"  [VQ1 5/5] [OK] composed_video.mp4")
+
+        # Metadata
+        all_ids = [u.selected_asset_id for u in voice_units]
+        unique = set(all_ids)
+        dup_count = len(all_ids) - len(unique)
+        fb_count = sum(1 for u in voice_units if u.is_fallback)
+        metadata = {
+            "topic": topic, "style": style, "edit_mode": "voice_unit",
+            "title": script.title, "duration": round(comp_result.duration, 1),
+            "resolution": comp_result.resolution,
+            "unit_count": len(voice_units),
+            "unique_asset_count": len(unique),
+            "duplicate_asset_count": dup_count,
+            "fallback_count": fb_count,
+            "bgm_file": bgm_name, "subtitle_burned_in": True,
+            "created_at": datetime.now().isoformat(),
+        }
+        export_result = self.exporter.export(
+            composed_video_path=comp_result.video_path,
+            topic=topic, metadata=metadata)
+
+        date_str = datetime.now().strftime("%Y%m%d")
+        safe = self.exporter._sanitize_filename(topic)
+        shutil.copy2(subtitle_path, self.output_dir / f"{safe}_{date_str}.srt")
+
+        print(f"\n{'─'*50}")
+        print(f"  VQ1 Pipeline 完成!")
+        print(f"  主题: {topic}")
+        print(f"  Units: {len(voice_units)}")
+        print(f"  Assets: {len(unique)} unique, {dup_count} dup, {fb_count} fallback")
+        print(f"  时长: {comp_result.duration:.1f}s")
+        print(f"  大小: {export_result.file_size_mb} MB")
+        print(f"{'─'*50}\n")
+
+        return PipelineResult(
+            script_path=script_path,
+            script_with_assets_path=TEMP_DIR / "voice_units.json",
+            voice_path=voice_path, subtitle_path=subtitle_path,
+            composed_video_path=comp_result.video_path,
+            final_video_path=export_result.video_path,
+            metadata_path=export_result.metadata_path,
+            duration=comp_result.duration,
+            scene_count=len(script.scenes),
+            asset_count=len(voice_units),
             file_size_mb=export_result.file_size_mb,
             resolution=comp_result.resolution,
         )

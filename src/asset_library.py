@@ -238,6 +238,84 @@ class AssetLibraryManager:
             })
         return results
 
+    # ── VQ1: Per-Unit Asset Matching ────────────────────
+
+    def match_for_voice_units(self, voice_units: list, top_n: int = 5) -> list:
+        """
+        VQ1: 每个 VoiceUnit 匹配一个素材。
+
+        Args:
+            voice_units: VoiceUnit 列表（已有 text/scene_type/asset_tags）
+            top_n: 候选素材数
+
+        Returns:
+            更新后的 voice_units（填充 selected_asset_id/path/type）
+        """
+        used_asset_ids: set[str] = set()
+        used_source_ids: list[str] = []
+        updated = []
+
+        for unit in voice_units:
+            # Query the matching engine
+            results = self._match_multi_dim(
+                query_tags=unit.asset_tags,
+                query_mood=unit.mood,
+                query_scene_type=unit.scene_type,
+                query_text=unit.text,
+                top_n=top_n,
+            )
+
+            # Pick first non-duplicate asset
+            chosen = None
+            fallback = None
+
+            for r in results:
+                if r.id in used_asset_ids:
+                    continue
+                # Source video diversity: prefer non-consecutive source
+                svid = getattr(r, 'source_video', '') or getattr(r, 'source_video_id', '') or ''
+                if used_source_ids and used_source_ids[-1] == svid:
+                    # Try next unless all remaining are same source
+                    continue
+                chosen = r
+                break
+
+            if not chosen:
+                # Pick first result regardless — at least it's a match
+                if results:
+                    chosen = results[0]
+                    unit.risk_flags.append("duplicate_asset_forced")
+                else:
+                    # Fallback
+                    from src.config import ASSETS_DIR
+                    fallback_path = ASSETS_DIR / "general" / "travel_compass.jpg"
+                    if fallback_path.exists():
+                        unit.selected_asset_id = "fallback"
+                        unit.selected_asset_path = "general/travel_compass.jpg"
+                        unit.selected_asset_type = "image"
+                        unit.is_fallback = True
+                        unit.risk_flags.append("no_match_fallback")
+                        updated.append(unit)
+                        continue
+
+            if chosen:
+                unit.selected_asset_id = chosen.id
+                unit.selected_asset_path = chosen.path
+                unit.selected_asset_type = chosen.type
+                used_asset_ids.add(chosen.id)
+                svid = getattr(chosen, 'source_video', '') or getattr(chosen, 'source_video_id', '') or ''
+                if svid:
+                    used_source_ids.append(svid)
+
+            updated.append(unit)
+
+        # Log dedup stats
+        fallback_count = sum(1 for u in updated if u.is_fallback)
+        if fallback_count > 0:
+            print(f"  [AssetMatcher] VQ1: {len(updated)} units, {fallback_count} fallbacks")
+
+        return updated
+
     # ── Multi-Dimension Scoring Engine (V3) ────────────
 
     def _match_multi_dim(

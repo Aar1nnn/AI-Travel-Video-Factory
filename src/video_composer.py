@@ -99,6 +99,7 @@ class VideoComposer:
         subtitle_path: Path | None = None,
         bgm_path: Path | None = None,
     ) -> CompositionResult:
+        """原有 scene 级合成，保持不变。"""
         _check_ffmpeg()
 
         if not voice_path.exists():
@@ -148,6 +149,79 @@ class VideoComposer:
             video_path=output_path,
             duration=voice_duration,
             scene_count=len(scenes),
+            asset_count=total_assets,
+        )
+
+    # ── VQ1: VoiceUnit-level Composition ────────────────
+
+    def compose_vq1(
+        self,
+        voice_units: list,
+        voice_path: Path,
+        subtitle_path: Path | None = None,
+        bgm_path: Path | None = None,
+    ) -> CompositionResult:
+        """
+        VQ1: 每个 VoiceUnit 一个画面，按 timeline 拼接。
+
+        Args:
+            voice_units: VoiceUnit 列表（已填充 asset + timing）
+            voice_path: voice.mp3
+            subtitle_path: subtitles.srt
+            bgm_path: BGM mp3
+
+        Returns:
+            CompositionResult
+        """
+        _check_ffmpeg()
+
+        if not voice_path.exists():
+            raise FileNotFoundError(f"配音文件不存在: {voice_path}")
+
+        # Process each unit → one clip
+        clip_paths = []
+        total_assets = 0
+        used_asset_ids = set()
+        duplicate_count = 0
+
+        for idx, unit in enumerate(voice_units):
+            dur = unit.duration if unit.duration > 0 else 1.0
+            if unit.duration <= 0:
+                unit.risk_flags.append("zero_duration_clamped")
+
+            path = unit.selected_asset_path
+            if not path:
+                # Fallback
+                from src.config import ASSETS_DIR
+                path = "general/travel_compass.jpg"
+                unit.is_fallback = True
+                unit.risk_flags.append("no_asset_for_unit")
+
+            asset_path = self._resolve_asset_path(path)
+            if not asset_path.exists():
+                asset_path = self._resolve_asset_path("general/travel_compass.jpg")
+
+            aid = asset_path.stem
+            if aid in used_asset_ids:
+                duplicate_count += 1
+            used_asset_ids.add(aid)
+
+            clip = self._process_asset(asset_path, unit.selected_asset_type or "video", dur, idx)
+            clip_paths.append(clip)
+            total_assets += 1
+
+        # Concat
+        concat_video = self._concat_with_crossfade(clip_paths, {})
+
+        # Final render with voice + subtitle + BGM
+        output_path = self.output_dir / "composed_video.mp4"
+        voice_dur = self._get_audio_duration(voice_path)
+        self._final_render(concat_video, voice_path, subtitle_path, bgm_path, output_path)
+
+        return CompositionResult(
+            video_path=output_path,
+            duration=voice_dur,
+            scene_count=len(set(u.scene_id for u in voice_units)),
             asset_count=total_assets,
         )
 

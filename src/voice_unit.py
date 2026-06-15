@@ -40,8 +40,10 @@ class VoiceUnit:
     # Asset — filled after matching
     selected_asset_id: str = ""
     selected_asset_path: str = ""
+    selected_asset_type: str = "video"
     is_fallback: bool = False
-    risk_flag: str = ""                # "duplicate_source"/"too_short"/etc
+    risk_flag: str = ""
+    risk_flags: list[str] = field(default_factory=list)
 
     # Minimum unit length (Chinese characters after stripping punctuation)
     MIN_CHARS: ClassVar[int] = 4
