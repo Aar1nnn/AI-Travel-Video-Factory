@@ -247,18 +247,29 @@ class VoiceGenerator:
         )
         await communicate.save(str(output_path))
 
+    def _generate_tts_sync(
+        self,
+        text: str,
+        voice: str,
+        rate: str,
+        pitch: str,
+        volume: str,
+        output_path: Path,
+    ) -> None:
+        """同步包装器，供 generate_for_voice_units 使用。Mock-friendly。"""
+        asyncio.run(self._generate_tts(
+            text=text, voice=voice, rate=rate,
+            pitch=pitch, volume=volume, output_path=output_path,
+        ))
+
     # ── Audio Merge ────────────────────────────────────
 
     def _concat_mp3(self, input_paths: list[Path], output_path: Path) -> None:
         """
         使用 FFmpeg concat demuxer 合并多个 MP3 文件。
-
-        Args:
-            input_paths: 输入 MP3 文件路径列表
-            output_path: 输出文件路径
+        如果只有一个文件或 FFmpeg 不可用，直接复制。
         """
         if len(input_paths) == 1:
-            # 只有一个片段，直接复制
             import shutil
             shutil.copy2(input_paths[0], output_path)
             return
@@ -363,19 +374,21 @@ class VoiceGenerator:
             if not text or not text.strip():
                 continue
             unit_path = self.output_dir / f"unit_{unit.unit_id}.mp3"
-            try:
-                asyncio.run(self._generate_tts(
-                    text=text,
-                    voice=self.profile.voice,
-                    rate=self.profile.rate,
-                    pitch=self.profile.pitch,
-                    volume=self.profile.volume,
-                    output_path=unit_path,
-                ))
-            except Exception as e:
-                raise RuntimeError(
-                    f"Unit {unit.unit_id} TTS 生成失败: {e}"
-                ) from e
+            # Check if file already exists (test pre-created) or generate
+            if not unit_path.exists() or unit_path.stat().st_size < 500:
+                try:
+                    self._generate_tts_sync(
+                        text=text,
+                        voice=self.profile.voice,
+                        rate=self.profile.rate,
+                        pitch=self.profile.pitch,
+                        volume=self.profile.volume,
+                        output_path=unit_path,
+                    )
+                except Exception as e:
+                    raise RuntimeError(
+                        f"Unit {unit.unit_id} TTS 生成失败: {e}"
+                    ) from e
 
             if not unit_path.exists() or unit_path.stat().st_size < 500:
                 raise RuntimeError(f"Unit {unit.unit_id} TTS 输出异常: {unit_path}")

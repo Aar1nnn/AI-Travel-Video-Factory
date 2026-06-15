@@ -166,18 +166,23 @@ class TestVQ1TTS:
         gen = VoiceGenerator(tts_config=config)
         units = _make_voice_units()
 
-        # Mock TTS + ffprobe
-        async def fake_tts(text, voice, rate, pitch, volume, output_path):
-            output_path.write_bytes(b'fake mp3 data here xxxxx')
+        # Pre-create clean fake mp3 files with enough size
+        for u in units:
+            p = gen.output_dir / f"unit_{u.unit_id}.mp3"
+            if p.exists():
+                p.unlink()
+            p.write_bytes(b'f' * 600)
 
-        with patch.object(gen, '_generate_tts', side_effect=fake_tts):
+        with patch.object(gen, '_generate_tts_sync'):
             with patch.object(gen, '_get_mp3_duration', return_value=1.5):
-                voice_path, updated = gen.generate_for_voice_units(units, pause_ms=100)
+                with patch.object(gen, '_concat_mp3'):
+                    voice_path, updated = gen.generate_for_voice_units(units, pause_ms=100)
 
         assert voice_path.exists()
         for u in updated:
             assert u.duration == 1.5
             assert u.start_time >= 0
+            assert u.end_time > u.start_time
 
     def test_pause_ms_in_timeline(self):
         """pause_ms creates gaps between units."""
@@ -185,15 +190,14 @@ class TestVQ1TTS:
         from src.config import TTSConfig
         gen = VoiceGenerator(tts_config=TTSConfig())
         units = _make_voice_units()
-
-        async def fake_tts(text, voice, rate, pitch, volume, output_path):
-            output_path.write_bytes(b'fake mp3 data')
-
-        with patch.object(gen, '_generate_tts', side_effect=fake_tts):
+        for u in units:
+            p = gen.output_dir / f"unit_{u.unit_id}.mp3"
+            if p.exists(): p.unlink()
+            p.write_bytes(b'f' * 600)
+        with patch.object(gen, '_generate_tts_sync'):
             with patch.object(gen, '_get_mp3_duration', return_value=1.0):
-                _, updated = gen.generate_for_voice_units(units, pause_ms=200)
-
-        # unit 0: 0.0-1.0, unit 1: 1.2-2.2, unit 2: 2.4-3.4
+                with patch.object(gen, '_concat_mp3'):
+                    _, updated = gen.generate_for_voice_units(units, pause_ms=200)
         gap = updated[1].start_time - updated[0].end_time
         assert 0.19 <= gap <= 0.21, f"Expected ~0.2s gap, got {gap}"
 
