@@ -220,6 +220,35 @@ class SubtitleGenerator:
             lines.append("")  # 空行分隔
         return "\n".join(lines)
 
+    # ── VQ1: DirectSRT from VoiceUnits ──────────────────
+
+    def generate_from_voice_units(self, voice_units: list, output_path: Path | None = None) -> Path:
+        """
+        VQ1: 直接从 VoiceUnit 生成 SRT，不使用 Whisper。
+
+        VoiceUnit 必须有 start_time / end_time / text。
+
+        Args:
+            voice_units: VoiceUnit 列表（已填充时间轴）
+            output_path: 输出路径，默认 subtitles.srt
+
+        Returns:
+            SRT 文件路径
+        """
+        segments = [
+            {"start": u.start_time, "end": u.end_time, "text": u.text}
+            for u in voice_units
+            if u.text.strip()
+        ]
+        srt_text = self._to_srt(segments)
+
+        path = output_path or (self.output_dir / "subtitles.srt")
+        path.write_text(srt_text, encoding="utf-8")
+
+        print(f"  [SubtitleGenerator] VQ1 DirectSRT: {path} "
+              f"({len(segments)} 条)")
+        return path
+
     def _seconds_to_srt_time(self, seconds: float) -> str:
         """
         将秒数转换为 SRT 时间格式 HH:MM:SS,mmm。

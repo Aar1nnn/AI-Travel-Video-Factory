@@ -26,7 +26,10 @@
     "source_video": "",
     "start_time": null,
     "end_time": null,
-    "confidence": null
+    "confidence": null,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_002",
@@ -55,7 +58,10 @@
     "source_video": "",
     "start_time": null,
     "end_time": null,
-    "confidence": null
+    "confidence": null,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_003",
@@ -83,7 +89,10 @@
     "source_video": "",
     "start_time": null,
     "end_time": null,
-    "confidence": null
+    "confidence": null,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_004",
@@ -110,7 +119,10 @@
     "source_video": "",
     "start_time": null,
     "end_time": null,
-    "confidence": null
+    "confidence": null,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_005",
@@ -138,7 +150,10 @@
     "source_video": "",
     "start_time": null,
     "end_time": null,
-    "confidence": null
+    "confidence": null,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_006",
@@ -167,7 +182,10 @@
     "source_video": "",
     "start_time": null,
     "end_time": null,
-    "confidence": null
+    "confidence": null,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_007",
@@ -195,7 +213,10 @@
     "source_video": "",
     "start_time": null,
     "end_time": null,
-    "confidence": null
+    "confidence": null,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_008",
@@ -227,7 +248,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0665
+    "confidence": 0.0665,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_009",
@@ -261,7 +285,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0663
+    "confidence": 0.0663,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_010",
@@ -295,7 +322,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0662
+    "confidence": 0.0662,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_011",
@@ -327,7 +357,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0682
+    "confidence": 0.0682,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_012",
@@ -360,7 +393,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0658
+    "confidence": 0.0658,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_013",
@@ -392,7 +428,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0662
+    "confidence": 0.0662,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_014",
@@ -425,7 +464,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0646
+    "confidence": 0.0646,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_015",
@@ -457,7 +499,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0656
+    "confidence": 0.0656,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_016",
@@ -489,7 +534,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0674
+    "confidence": 0.0674,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_017",
@@ -521,7 +569,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0676
+    "confidence": 0.0676,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_018",
@@ -553,7 +604,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0684
+    "confidence": 0.0684,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_019",
@@ -587,7 +641,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0651
+    "confidence": 0.0651,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_020",
@@ -619,7 +676,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0655
+    "confidence": 0.0655,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_021",
@@ -651,7 +711,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0679
+    "confidence": 0.0679,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_022",
@@ -683,7 +746,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0655
+    "confidence": 0.0655,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_023",
@@ -716,7 +782,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0646
+    "confidence": 0.0646,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_024",
@@ -748,7 +817,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0654
+    "confidence": 0.0654,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_025",
@@ -780,7 +852,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.065
+    "confidence": 0.065,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_026",
@@ -813,7 +888,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.068
+    "confidence": 0.068,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_027",
@@ -846,7 +924,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0676
+    "confidence": 0.0676,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_028",
@@ -879,7 +960,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0675
+    "confidence": 0.0675,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_029",
@@ -914,7 +998,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0662
+    "confidence": 0.0662,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_030",
@@ -946,7 +1033,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0657
+    "confidence": 0.0657,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_031",
@@ -979,7 +1069,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0653
+    "confidence": 0.0653,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_032",
@@ -1012,7 +1105,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0667
+    "confidence": 0.0667,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_033",
@@ -1044,7 +1140,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0671
+    "confidence": 0.0671,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_034",
@@ -1077,7 +1176,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0669
+    "confidence": 0.0669,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_035",
@@ -1109,7 +1211,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0664
+    "confidence": 0.0664,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_036",
@@ -1143,7 +1248,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0659
+    "confidence": 0.0659,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_037",
@@ -1176,7 +1284,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0659
+    "confidence": 0.0659,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_038",
@@ -1209,7 +1320,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0655
+    "confidence": 0.0655,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_039",
@@ -1241,7 +1355,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.068
+    "confidence": 0.068,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_040",
@@ -1273,7 +1390,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0657
+    "confidence": 0.0657,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_041",
@@ -1307,7 +1427,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0663
+    "confidence": 0.0663,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_042",
@@ -1340,7 +1463,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0672
+    "confidence": 0.0672,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_043",
@@ -1374,7 +1500,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0651
+    "confidence": 0.0651,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_044",
@@ -1407,7 +1536,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0662
+    "confidence": 0.0662,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_045",
@@ -1439,7 +1571,10 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0671
+    "confidence": 0.0671,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   },
   {
     "id": "asset_046",
@@ -1471,6 +1606,77 @@
     "source_video": "raw/jiangyu.mp4",
     "start_time": null,
     "end_time": null,
-    "confidence": 0.0681
+    "confidence": 0.0681,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
+  },
+  {
+    "id": "asset_047",
+    "path": "processed/asset_047.mp4",
+    "type": "video",
+    "tags": [
+      "夜景",
+      "星空",
+      "夕阳",
+      "山景",
+      "湖景",
+      "夜市",
+      "全景",
+      "水面"
+    ],
+    "country": "",
+    "city": "",
+    "category": "",
+    "scene_type": "night",
+    "moods": [],
+    "duration": 57.0,
+    "resolution": "3840x2160",
+    "orientation": "horizontal",
+    "file_size_kb": 185067,
+    "source": "auto-processed",
+    "license_": "",
+    "thumbnail": "thumbnails/asset_047.jpg",
+    "source_video": "raw/uploads/upload_20260614_193249_云南香格里拉星空实拍4k银河延时动态星轨超清4K.mp4",
+    "start_time": 0.0,
+    "end_time": 57.0,
+    "confidence": 0.0662,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
+  },
+  {
+    "id": "asset_048",
+    "path": "processed/asset_048.mp4",
+    "type": "video",
+    "tags": [
+      "东京",
+      "丽江",
+      "蓝天",
+      "大理",
+      "俯瞰",
+      "亚庇",
+      "寺庙",
+      "花朵"
+    ],
+    "country": "",
+    "city": "",
+    "category": "",
+    "scene_type": "airport",
+    "moods": [],
+    "duration": 16.7,
+    "resolution": "3840x2160",
+    "orientation": "horizontal",
+    "file_size_kb": 418,
+    "source": "auto-processed",
+    "license_": "",
+    "thumbnail": "thumbnails/asset_048.jpg",
+    "source_video": "raw/uploads/upload_20260614_193249_云南香格里拉星空实拍4k银河延时动态星轨超清4K.mp4",
+    "start_time": 57.0,
+    "end_time": 73.7,
+    "confidence": 0.0652,
+    "quality_score": null,
+    "scene_summary": "",
+    "embedding_path": ""
   }
 ]
